@@ -1,0 +1,87 @@
+
+# A style sheet for matplotlib generating figures with large LaTeX labels for
+# publications.
+#
+# Author: Valentin Niess (niess@in2p3.fr)
+
+# Set a 3/4 aspect ratio with automatic layout.
+figure.figsize: 7.057 , 4.41
+figure.autolayout: true
+figure.dpi : 300
+
+# Use LaTeX fonts
+
+# Backend options (42: use TrueType fonts)
+pdf.fonttype: 42
+ps.fonttype: 42
+
+# Set large font sizes for paper figures
+# axes.labelsize: 28
+# axes.titlesize: 28
+# axes.titlepad: 12
+# xtick.labelsize: 24
+# ytick.labelsize: 24
+# axes.labelpad: 6
+# # legend.fontsize: 22
+# legend.numpoints: 1
+# legend.scatterpoints: 1
+
+# Set lines and ticks according to the `seaborn-paper` style sheet
+# grid.linewidth: 0.8
+# lines.linewidth: 1.4
+# patch.linewidth: 0.24
+lines.markersize: 4.6
+# lines.markeredgewidth: 0
+#
+# xtick.major.width: 0.8
+# ytick.major.width: 0.8
+# xtick.minor.width: 0.4
+# ytick.minor.width: 0.4
+# xtick.major.pad: 5.6
+# ytick.major.pad: 5.6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+figure.titlesize:11.0 
+font.size : 11.0
+font.family: Times New Roman
+text.usetex: True
+text.latex.preamble: \usepackage{amsmath}\usepackage{bm}\usepackage{amssymb}\usepackage{physics}\usepackage{siunitx}[=v2]\usepackage{amsfonts}
+errorbar.capsize: 2
+
+axes.prop_cycle    :(cycler(color=["#4056A1","#075C2F","#7D8238","#D79922","#B74C66"]) + cycler(linestyle=['-', '--', '-.',':','-']))
+legend.frameon:False
+legend.borderpad:     0.1  # border whitespace
+legend.labelspacing:  0.5  # the vertical space between the legend entries
+legend.handlelength:  1.5  # the length of the legend lines
+legend.handleheight:  0.7  # the height of the legend handle
+legend.handletextpad: 0.4  # the space between the legend line and legend text
+legend.borderaxespad: 0.5  # the border between the axes and legend edge
+legend.columnspacing: 2.0  # column separation
