@@ -1,7 +1,8 @@
+"""
+This script creates Fig. 7. 
+"""
+
 import pathlib
-import sys
-from dataclasses import dataclass
-from itertools import product
 
 import matplotlib.pyplot as plt
 import numpy as np

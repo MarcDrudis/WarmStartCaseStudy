@@ -1,3 +1,5 @@
+"""This script follows an adiabatic minima and outputs its trajectory over time."""
+
 import pathlib
 import sys
 
@@ -36,23 +38,17 @@ qc = ansatz_QRTE_Hamiltonian(H, reps=2)
 print(qc)
 
 
-# def lossfunction(
-#     perturbation: np.ndarray, initial_parameters: np.ndarray, H: float | None = None
-# ) -> float:
-#     state1 = Statevector(qc.assign_parameters(initial_parameters + perturbation))
-#     state2 = Statevector(qc.assign_parameters(initial_parameters))
-#     if H is not None:
-#         state2 = expm_multiply(-1.0j * H.to_matrix(sparse=True), state2.data)
-#         state2 = Statevector(state2 / np.linalg.norm(state2))
-#
-#     return 1 - state_fidelity(state1, state2)
-
-
 def lossfunction(
     perturbation: np.ndarray,
     initial_parameters: np.ndarray,
     H: SparsePauliOp | None = None,
 ) -> float:
+    """The loss function as described in the paper.
+    Args:
+    perturbation: the difference between the initial parameters and the new parameters.
+    initial_parameters: initial parameters from the last timestep.
+    H: The Hamiltonian we study.
+    """
     state1 = Statevector(qc.assign_parameters(initial_parameters + perturbation))
     state2 = Statevector(qc.assign_parameters(initial_parameters))
     if H is not None:
@@ -71,6 +67,9 @@ times = np.linspace(0, 0.5, 20 + 1)
 global_inf = [lossfunction(0, initial_parameters)]
 global_params = [np.zeros(qc.num_parameters)]
 
+# We will evolve the landscape slowly and minimize the parameters at each timestep.
+# Note that we don't reset the cost function with the previous parameters at each
+# timestep, but rather just use them as a warm start for the next iteration.
 for t in tqdm(times[1:]):
     result_global = minimize(
         lossfunction, global_params[-1], args=(initial_parameters, H * t)

@@ -1,3 +1,5 @@
+"""We define dataclasses to be serialized to yaml to store the results of the experiments."""
+
 from dataclasses import dataclass
 
 from dataclass_wizard import YAMLWizard

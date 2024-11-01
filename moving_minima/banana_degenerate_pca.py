@@ -1,3 +1,5 @@
+"""This script generates Fig. 5"""
+
 import pathlib
 from itertools import product
 
@@ -31,6 +33,7 @@ def infidelity(
     return 1 - state_fidelity(initial_state, state2)
 
 
+# We need to have an adiabatic minima trajectory to do our plots.
 num_qubits = 10
 data = MovingMinimaResult.from_yaml_file(
     directory.parent / f"moving_minima/XX/moving_minima_qubits={num_qubits}_seed=0.yaml"
@@ -41,7 +44,6 @@ HB = lattice_hamiltonian(num_qubits, [data.H[1]])
 H = lattice_hamiltonian(num_qubits, [data.H[0]]) + HB
 
 normalization = eigenrange(H)
-# print(H, normalization)
 
 qc = ansatz_QRTE_Hamiltonian(H, reps=2)
 
@@ -62,7 +64,14 @@ def cut(
     qc: QuantumCircuit,
     H: SparsePauliOp | None = None,
 ):
-    # assert np.isclose(np.linalg.norm(direction), 1), "Wrong unit vector"
+    """Computes the value for a given cut in our landscape.
+    Args:
+    initial_state: Initial state that will be time evolved in our loss function.
+    initial_parameters: Parameters that lead to the initial_state in our ansatz.
+    direction: Unit vector that determines the direction of the cut.
+    qc: Our ansatz
+    H: The Hamiltonian we study. Note that it has absorbed the timestep.
+    """
     jobs = (
         delayed(infidelity)(initial_parameters + direction * p, initial_state, qc, H)
         for p in np.linspace(-0.5, 1.4, 100) * 5
@@ -76,7 +85,6 @@ fig, axs = plt.subplots(
     1,
     2,
     figsize=(width_document, width_document / 3.2),
-    # gridspec_kw={"wspace": 0, "hspace": 1},
 )
 count = 0
 
@@ -186,7 +194,8 @@ else:
         cuts_data = yaml.safe_load(f)
 
 
-# Plotting
+# Plotting with PCA. We will find the most significant cut in the high dimensional
+# landscape.
 
 
 colors = [
@@ -220,15 +229,10 @@ for l, t, c in zip(cuts_data["Landscapes"], cuts_data["times"], line_colors):
             rf"$\delta t={np.round(t*0.04158516,2)}$" if t in relevant_times else None
         ),
     )
-# axs.set_xlabel(r"$\norm{\theta}_{\infty}$")
 axs[0].set_xlabel(r"Update Size, $\norm{\bm{\theta}}_{\infty}$")
 axs[0].tick_params(axis="x", labelsize=11)
 axs[0].set_ylabel(r"Infidelity, $\mathcal{L}(\bm{\theta})$")
-# axs[0].legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
-axs[0].legend(
-    loc="center left",
-    # borderaxespad=0.4,
-)
+axs[0].legend(loc="center left")
 
 
 parameter_update = (
@@ -273,7 +277,6 @@ plot_pca_landscape(
     pca,
     ax=axs[0],
     cmap=cmap,
-    # norm=LogNorm(),
 )
 plot_optimization_trajectory_on_pca(
     cuts_data["trajectory"],
@@ -292,9 +295,6 @@ plot_scatter_points_on_pca(
     marker="x",
     s=70,
 )
-# axs[0].scatter(x=[0, 1], y=[0, 1], marker="x", color="black")
-# axs[0].annotate(r"$\theta_0$", (-2, -0.5))
-# axs[0].annotate(r"$\theta^*$", (3.1, -2))
 axs[0].set_xlabel("")
 axs[0].set_ylabel("")
 axs[0].set_xticks([])

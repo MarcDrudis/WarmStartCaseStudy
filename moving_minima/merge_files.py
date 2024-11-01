@@ -1,3 +1,5 @@
+"""Just a utility script to combine results from costly simulations."""
+
 import os
 import pathlib
 from time import time

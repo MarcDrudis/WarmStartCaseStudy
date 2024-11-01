@@ -1,3 +1,5 @@
+"""Utility functions"""
+
 from typing import Callable
 
 import numpy as np
@@ -59,6 +61,7 @@ def find_local_minima(
 
 
 def eigenrange(H: SparsePauliOp) -> float:
+    """Computes the eigenvalue of a Hamiltonian."""
     if isinstance(H, SparsePauliOp):
         H = H.to_matrix(sparse=True)
         smallest = eigsh(H, which="SA", k=1)[0][0]
@@ -72,6 +75,10 @@ def eigenrange(H: SparsePauliOp) -> float:
 
 
 def ansatz_QRTE_Hamiltonian(H: SparsePauliOp | Pauli, reps: int = 1) -> QuantumCircuit:
+    """
+    Returns a Hamiltonian variational ansatz. That is a circuit with generators corresponding
+    to the terms in the Hamiltonian.
+    """
     qc = QuantumCircuit(H.num_qubits)
 
     if isinstance(H, SparsePauliOp):
@@ -85,56 +92,11 @@ def ansatz_QRTE_Hamiltonian(H: SparsePauliOp | Pauli, reps: int = 1) -> QuantumC
     return qc
 
 
-# def qubit_variance(
-#     num_qubits: int, r: float, depth: str, samples: int, hamiltonian: SparsePauliOp
-# ) -> float:
-#     """
-#     Computes the variance for a given quantum circuit perturbed by the
-#     time evolution of a given Hamiltonian.
-#     Args:
-#         num_qubits(int): number of qubits of the system
-#         r(float): side of the hypercube to sample from
-#         depth(str): "linear" or "const" for the number of repetitions
-#         of the ansatz
-#     """
-#     qc = get_ansatz(num_qubits, depth)
-#     times = None
-#     vc = VarianceComputer(
-#         qc=qc,
-#         initial_parameters=None,
-#         times=times,
-#         H=hamiltonian,
-#     )
-#     return vc.direct_compute_variance(samples, r)
-
-
-def bis_lattice_hamiltonian(
-    num_qubits: int,
-    terms: list[tuple[str, float]],
-    periodic: bool = False,
-):
-    one_local_connections = [(c,) for c in range(num_qubits)]
-    two_local_connections = [
-        (cA, cB) for cA, cB in zip(range(num_qubits - 1), range(1, num_qubits))
-    ]
-    if periodic:
-        two_local_connections += [(0, num_qubits - 1)]
-
-    all_terms_list = []
-    for term, coeff in terms:
-        connections = one_local_connections if len(term) == 1 else two_local_connections
-        all_terms_list += [(term, c, coeff) for c in connections]
-
-    H = SparsePauliOp.from_sparse_list(all_terms_list, num_qubits=num_qubits)
-
-    return H
-
-
 def lattice_hamiltonian(
     num_qubits: int,
     terms: list[tuple[str, float]],
     periodic: bool = False,
-):
+) -> SparsePauliOp:
     """
     Returns a Hamiltonian in a 1D lattice.
     Args:
@@ -154,6 +116,7 @@ def lattice_hamiltonian(
 
 
 def _n_local_connections(num_qubits: int, term: str, periodic: bool):
+    """Returns connectivity of the Hamiltonian."""
     if periodic:
         connections = [
             np.arange(i, i + len(term)) % num_qubits for i in range(num_qubits)
@@ -163,69 +126,6 @@ def _n_local_connections(num_qubits: int, term: str, periodic: bool):
             np.arange(i, i + len(term)) for i in range(num_qubits - len(term) + 1)
         ]
     return connections
-
-
-# def create_heisenberg(
-#     num_qubits: int, j_const: float, g_const: float, circular: bool = False
-# ) -> SparsePauliOp:
-#     """Creates an Heisenberg Hamiltonian on a lattice."""
-#     xx_op = ["I" * i + "XX" + "I" * (num_qubits - i - 2) for i in range(num_qubits - 1)]
-#     yy_op = ["I" * i + "YY" + "I" * (num_qubits - i - 2) for i in range(num_qubits - 1)]
-#     zz_op = ["I" * i + "ZZ" + "I" * (num_qubits - i - 2) for i in range(num_qubits - 1)]
-#
-#     circ_op = (
-#         ["X" + "I" * (num_qubits - 2) + "X"]
-#         + ["Y" + "I" * (num_qubits - 2) + "Y"]
-#         + ["Z" + "I" * (num_qubits - 2) + "Z"]
-#         if circular
-#         else []
-#     )
-#
-#     z_op = ["I" * i + "Z" + "I" * (num_qubits - i - 1) for i in range(num_qubits)]
-#
-#     return (
-#         SparsePauliOp(xx_op + yy_op + zz_op + circ_op) * j_const
-#         + SparsePauliOp(z_op) * g_const
-#     )
-#
-#
-# def create_ising(
-#     num_qubits: int,
-#     zz_const: float,
-#     z_const: float,
-#     circular: bool = False,
-#     x_const: float = 0,
-# ) -> SparsePauliOp:
-#     """Creates an Heisenberg Hamiltonian on a lattice."""
-#     zz_op = ["I" * i + "ZZ" + "I" * (num_qubits - i - 2) for i in range(num_qubits - 1)]
-#
-#     circ_op = +["Z" + "I" * (num_qubits - 2) + "Z"] if circular else []
-#
-#     z_op = ["I" * i + "Z" + "I" * (num_qubits - i - 1) for i in range(num_qubits)]
-#     x_op = ["I" * i + "X" + "I" * (num_qubits - i - 1) for i in range(num_qubits)]
-#
-#     return (
-#         SparsePauliOp(zz_op + circ_op) * zz_const
-#         + SparsePauliOp(z_op) * z_const
-#         + SparsePauliOp(x_op) * x_const
-#     )
-
-
-def fidelity_var_bound(deltatheta, dt, m, eigenrange):
-    return (0.5 * (1 + np.sinc(2 * deltatheta))) ** m * (
-        1 - dt**2 / 4 * (eigenrange) ** 2
-    )
-
-
-def evolve_circuit(H, dt, qc, initial_parameters, observables, num_timesteps=100):
-    prob = TimeEvolutionProblem(
-        hamiltonian=H,
-        time=dt,
-        initial_state=qc.assign_parameters(initial_parameters),
-        aux_operators=observables,
-    )
-    solver = SciPyRealEvolver(num_timesteps=num_timesteps)
-    return solver.evolve(prob)
 
 
 def find_maximum(x: list[float], y: list[float], n_around: int = 2):

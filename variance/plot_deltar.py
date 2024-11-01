@@ -1,20 +1,16 @@
+"""
+This script creates Fig. 2. 
+"""
+
 import pathlib
-import sys
-from dataclasses import dataclass
-from itertools import product
+import string
 
 import matplotlib.pyplot as plt
 import numpy as np
-from dataclass_wizard import YAMLWizard
-from joblib import Parallel, cpu_count, delayed
-from joblib_progress import joblib_progress
-from qiskit.pulse import num_qubits
-from qiskit.quantum_info import Statevector, state_fidelity
-from scipy.interpolate import CubicSpline, interp1d
+from scipy.interpolate import interp1d
 
-from fidlib.basicfunctions import find_maximum, get_ansatz
+from fidlib.basicfunctions import find_maximum
 from fidlib.result_dataclasses import VarResult
-from fidlib.variance import VarianceComputer
 
 directory = pathlib.Path(__file__).parent.resolve()
 plt.style.use(directory.parent / "plots/plot_style.mplstyle")
@@ -38,9 +34,6 @@ colors = [
     "#4e6c2e",
     "#075c2f",
 ]
-
-# fig, axs = plt.subplots(3, 1, figsize=(5, 12))
-# fig.tight_layout(pad=1.0)
 
 # The size of our document
 # width_document = 246 / 72.27
@@ -80,21 +73,12 @@ for i, n in enumerate(result.qubits):
     maxima_value.append(np.max(maximas_raw[1]))
 
     if n in included_qubits:
-        # axs[0].scatter(
-        #     x=maximas[-1],
-        #     y=maxima_value[-1],
-        #     color=colors[color_counter],
-        #     marker="*",
-        #     s=70,
-        # )
         axs[0].scatter(
             x=np.array(result.r) / np.pi,
             y=result.variances[i],
             color=colors[color_counter],
         )
         axs[0].plot(
-            # resolution_rs / np.pi,
-            # linear_interpolation,
             np.array(result.r) / np.pi,
             result.variances[i],
             label=f"n={n}",
@@ -220,7 +204,6 @@ axs[2].set_yticks([2 ** (-k) for k in [6, 7, 8, 9, 10, 11]])
 axs[1].set_xticks([2**k for k in [5, 6, 7, 8, 9]])
 axs[1].set_yticks([2 ** (-k) for k in [3, 4]])
 
-import string
 
 for n, ax in enumerate(axs):
     ax.text(
@@ -233,6 +216,3 @@ for n, ax in enumerate(axs):
 
 fig.savefig(directory.parent / f"plots/variance_{depth}.svg")
 fig.savefig(directory.parent / f"plots/variance_{depth}.png")
-# import os
-
-# os.system("xdg-open " + str(directory.parent / f"plots/variance_{depth}.svg"))

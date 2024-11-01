@@ -1,3 +1,5 @@
+"""Generates results used in Fig. 7"""
+
 import pathlib
 import sys
 from itertools import product

@@ -1,3 +1,5 @@
+"""Generates Fig. 4"""
+
 import pathlib
 from time import time
 

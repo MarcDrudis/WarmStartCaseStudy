@@ -2,17 +2,28 @@ import numba
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import SparsePauliOp, Statevector
+from scipy.optimize import minimize_scalar
 from scipy.sparse.linalg import expm_multiply
 
 
 class VarianceComputer:
+    """Computes the variance of the loss function studied in the paper for a given region around the origin."""
+
     def __init__(
         self,
         qc: QuantumCircuit,
         initial_parameters: np.ndarray | None,
         times: np.ndarray | tuple[float, int] | None,
-        H: SparsePauliOp,
+        H: SparsePauliOp | None,
     ):
+        """
+        Args:
+        qc: Ansatz we will use to represent our state.
+        initial_parameters: Parameters around which we will compute the variance of our loss function.
+        times: list of times at which to compute the target state. If None the target state will be
+        given by the ansatz at initial parameters.
+        H: Hamiltonian to study. If times is None it is not used.
+        """
         self.qc = qc
         self.initial_parameters = (
             np.random.uniform(-np.pi, np.pi, qc.num_parameters)
@@ -67,6 +78,7 @@ class VarianceComputer:
     def compute_averages(
         self, batch_size: int, N_batches: int, omega: float
     ) -> tuple[float, float]:
+        """Computes the averages of L and L^2."""
         L = 0
         L2 = 0
         for _ in range(N_batches):
@@ -79,12 +91,14 @@ class VarianceComputer:
         return L / N_samples, L2 / N_samples
 
     def compute_variance(self, batch_size: int, N_batches: int, omega: float) -> float:
+        """Returns the variance of the loss function."""
         L, L2 = self.compute_averages(
             batch_size=batch_size, N_batches=N_batches, omega=omega
         )
         return L2 - L**2
 
     def direct_compute_variance(self, batch_size: int, omega: float) -> float:
+        """Computes the Variance of the loss function by using np.var"""
         batch = self._compute_batch(batch_size=batch_size, omega=omega)
         return np.var(batch, axis=0)
 
@@ -107,9 +121,6 @@ def cplus(omega: float) -> float:
 def a_const(omega: float) -> float:
     "Computes cplus-kplus^2"
     return cplus(omega) - kplus(omega) ** 2
-
-
-from scipy.optimize import minimize_scalar
 
 
 def bound(omega: float, alpha: float, num_param: int) -> float:
